@@ -1,0 +1,261 @@
+GnuCOBOL 4.0-early-dev. primes.cbsql                                                  Sun Nov 30 11:35:10 2025  Page 0001
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000001         identification division.
+000002         program-id. primes.
+000003
+000004         environment division.
+000005         configuration section.
+000006         source-computer. linux-laptop.
+000007         object-computer. linux-laptop.
+000008         special-names.
+000009             console is scherm.
+000010
+000011         data division.
+000012         working-storage section.
+000013         01  filler               pic x(32) value "Start WS primes".
+000014         01 DATASRC PIC X(64) value
+000015            "pgsql://localhost:5432/primes".
+000016         01 DBUSR     PIC X(64)  value "primes_user".
+000017         01 DBPWD     PIC X(64)  value "pr1mes_user".
+000018         01 CUR-STEP    PIC X(16).
+000019
+000020         01 prime-row.
+000021          03 ident            pic 9(9).
+000022          03 prime            pic 9(9).
+000023
+000024  GIXSQL*EXEC SQL
+000025  GIXSQL*    INCLUDE SQLCA
+000026  GIXSQL*END-EXEC.
+000027             COPY SQLCA.
+000001C       ******************************************************************
+000002C       *       SQLCA: SQL Communications Area for GIXSQL                *
+000003C       ******************************************************************
+000004C        01  SQLCA.
+000005C            05  SQLCAID               PIC X(8).
+000006C            05  SQLCABC               PIC S9(9) COMP-5.
+000007C            05  SQLCODE               PIC S9(9) COMP-5.
+000008C            05  SQLERRM.
+000009C            49  SQLERRML              PIC S9(4) COMP-5.
+000010C            49  SQLERRMC              PIC X(70).
+000011C            05  SQLERRP               PIC X(8).                          *> not used
+000012C            05  SQLERRD OCCURS 6 TIMES                                   *> used only ERRD(3)
+000013C                                      PIC S9(9) COMP-5.
+000014C            05  SQLWARN.                                                 *> not used
+000015C                10 SQLWARN0           PIC X(1).
+000016C                10 SQLWARN1           PIC X(1).
+000017C                10 SQLWARN2           PIC X(1).
+000018C                10 SQLWARN3           PIC X(1).
+000019C                10 SQLWARN4           PIC X(1).
+000020C                10 SQLWARN5           PIC X(1).
+000021C                10 SQLWARN6           PIC X(1).
+000022C                10 SQLWARN7           PIC X(1).
+000023C            05  SQLSTATE              PIC X(5).
+000024C       ******************************************************************
+000028
+GnuCOBOL 4.0-early-dev. primes.cbsql                                                  Sun Nov 30 11:35:10 2025  Page 0002
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000029  GIXSQL 01  SQ0001.
+000030  GIXSQL     02  FILLER PIC X(0044) VALUE "insert into primes ( prime ) "
+000031  GIXSQL  &  "values ( $1 ) ;".
+000032  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000033  GIXSQL 01  SQ0002.
+000034  GIXSQL     02  FILLER PIC X(0019) VALUE "select count(ident)".
+000035  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000036  GIXSQL 01  SQ0003.
+000037  GIXSQL     02  FILLER PIC X(0020) VALUE "select ident , prime".
+000038  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000039  GIXSQL 01  SQ0004.
+000040  GIXSQL     02  FILLER PIC X(0035) VALUE "truncate table primes reset i"
+000041  GIXSQL  &  "dent .".
+000042  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000043  GIXSQL 01  SQ0005.
+000044  GIXSQL     02  FILLER PIC X(0043) VALUE "insert into primes ( prime ) "
+000045  GIXSQL  &  "values ( 3 ) ;".
+000046  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000047  GIXSQL 01  SQ0006.
+000048  GIXSQL     02  FILLER PIC X(0032) VALUE "select ident , prime from pri"
+000049  GIXSQL  &  "mes".
+000050  GIXSQL     02  FILLER PIC X(1) VALUE X"00".
+000051  GIXSQL*   ESQL CURSOR INIT FLAGS (START)
+000052  GIXSQL*   ESQL CURSOR INIT FLAGS (END)
+000053         linkage section.
+000054         01 primes.
+000055          03 methods          pic x(32).
+000056          03 method-result    pic 9(2).
+000057
+000058         procedure division using primes.
+000059
+000060             evaluate true
+000061               when methods = 'get'
+000062                 perform get-next-divide
+000063               when methods = 'put'
+000064                 perform write-prime
+000065               when methods = 'start'
+000066                 perform start-primes
+000067               when methods = 'stop'
+000068                 perform stop-primes
+000069               when other
+000070                 move 99 to method-result
+000071             end-evaluate.
+000072
+000073             exit program.
+000074
+000075         get-next-divide.
+000076             move 1 to method-result.
+000077
+000078         write-prime.
+000079
+000080
+GnuCOBOL 4.0-early-dev. primes.cbsql                                                  Sun Nov 30 11:35:10 2025  Page 0003
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000081  GIXSQL*      EXEC SQL
+000082  GIXSQL*        insert into primes ( prime ) values ( :);
+000083  GIXSQL*      END-EXEC.
+000084  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000085  GIXSQL         BY REFERENCE SQLCA
+000086  GIXSQL         BY REFERENCE x"00"
+000087  GIXSQL         BY VALUE 0
+000088  GIXSQL         BY REFERENCE SQ0001
+000089  GIXSQL     END-CALL.
+000090
+000091         start-primes.
+000092
+000093             perform s00-connect.
+000094
+000095  GIXSQL*    EXEC SQL at primes
+000096  GIXSQL*      select count(ident) into :prime-row from primes;
+000097  GIXSQL*    END-EXEC.
+000098  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000099  GIXSQL         BY REFERENCE SQLCA
+000100  GIXSQL         BY REFERENCE "primes" & x"00"
+000101  GIXSQL         BY VALUE 0
+000102  GIXSQL         BY REFERENCE SQ0002
+000103  GIXSQL     END-CALL.
+000104
+000105  GIXSQL*    EXEC SQL at primes
+000106  GIXSQL*      select ident, prime into :prime-row from primes;
+000107  GIXSQL*    END-EXEC.
+000108  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000109  GIXSQL         BY REFERENCE SQLCA
+000110  GIXSQL         BY REFERENCE "primes" & x"00"
+000111  GIXSQL         BY VALUE 0
+000112  GIXSQL         BY REFERENCE SQ0003
+000113  GIXSQL     END-CALL.
+000114             display SQLCODE upon scherm.
+000115             display ident upon scherm.
+000116             display prime upon scherm.
+000117
+000118             if SQLCODE = 0   then
+000119
+000120               display "truncate primes" upon scherm.
+000121
+000122  GIXSQL*      EXEC SQL at primesdb
+000123  GIXSQL*        truncate table primes reset ident.
+000124  GIXSQL*      END-EXEC.
+000125  GIXSQL     CALL STATIC "GIXSQLStartSQL"
+000126  GIXSQL     END-CALL
+000127  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000128  GIXSQL         BY REFERENCE SQLCA
+000129  GIXSQL         BY REFERENCE "primesdb" & x"00"
+000130  GIXSQL         BY VALUE 0
+000131  GIXSQL         BY REFERENCE SQ0004
+000132  GIXSQL     END-CALL
+GnuCOBOL 4.0-early-dev. primes.cbsql                                                  Sun Nov 30 11:35:10 2025  Page 0004
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000133  GIXSQL     CALL STATIC "GIXSQLEndSQL"
+000134  GIXSQL     END-CALL.
+000135               display SQLCODE upon scherm.
+000136
+000137               display "insert first primes" upon scherm.
+000138
+000139  GIXSQL*      EXEC SQL at primes
+000140  GIXSQL*        insert into primes ( prime ) values ( 3 );
+000141  GIXSQL*      END-EXEC.
+000142  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000143  GIXSQL         BY REFERENCE SQLCA
+000144  GIXSQL         BY REFERENCE "primes" & x"00"
+000145  GIXSQL         BY VALUE 0
+000146  GIXSQL         BY REFERENCE SQ0005
+000147  GIXSQL     END-CALL.
+000148               display SQLCODE upon scherm.
+000149
+000150         stop-primes.
+000151
+000152             perform s99-disconnect.
+000153
+000154         s00-connect.
+000155             MOVE 'CONNECT' TO CUR-STEP.
+000156  GIXSQL*    EXEC SQL
+000157  GIXSQL*       CONNECT TO :DATASRC AS primes USER :DBUSR USING :DBPWD
+000158  GIXSQL*    END-EXEC.
+000159  GIXSQL     CALL STATIC "GIXSQLConnect" USING
+000160  GIXSQL         BY REFERENCE SQLCA
+000161  GIXSQL         BY REFERENCE DATASRC
+000162  GIXSQL         BY VALUE 64
+000163  GIXSQL         BY REFERENCE "primes" & x"00"
+000164  GIXSQL         BY VALUE 0
+000165  GIXSQL         BY REFERENCE x"00"
+000166  GIXSQL         BY VALUE 0
+000167  GIXSQL         BY REFERENCE DBUSR
+000168  GIXSQL         BY VALUE 64
+000169  GIXSQL         BY REFERENCE DBPWD
+000170  GIXSQL         BY VALUE 64
+000171  GIXSQL     END-CALL.
+000172             display "connect to database" upon scherm.
+000173             display SQLCODE upon scherm.
+000174
+000175  GIXSQL*    EXEC SQL at primes
+000176  GIXSQL*      select ident, prime from primes into :prime-row;
+000177  GIXSQL*    END-EXEC.
+000178  GIXSQL     CALL STATIC "GIXSQLExec" USING
+000179  GIXSQL         BY REFERENCE SQLCA
+000180  GIXSQL         BY REFERENCE "primes" & x"00"
+000181  GIXSQL         BY VALUE 0
+000182  GIXSQL         BY REFERENCE SQ0006
+000183  GIXSQL     END-CALL.
+000184             display SQLCODE upon scherm.
+GnuCOBOL 4.0-early-dev. primes.cbsql                                                  Sun Nov 30 11:35:10 2025  Page 0005
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000185             display prime-row upon scherm.
+000186             display "select from database" upon scherm.
+000187
+000188         s99-disconnect.
+000189
+000190             MOVE 'DISCONNECT' TO CUR-STEP.
+000191  GIXSQL*    EXEC SQL CONNECT RESET primesdb END-EXEC.
+000192  GIXSQL     CALL STATIC "GIXSQLConnectReset" USING
+000193  GIXSQL         BY REFERENCE SQLCA
+000194  GIXSQL         BY REFERENCE "primesdb" & x"00"
+000195  GIXSQL         BY VALUE 0
+000196  GIXSQL     END-CALL.
+000197  GIXSQL*    EXEC SQL
+000198  GIXSQL*       DISCONNECT primesdb
+000199  GIXSQL*    END-EXEC.
+000200  GIXSQL     CALL STATIC "GIXSQLConnectReset" USING
+000201  GIXSQL         BY REFERENCE SQLCA
+000202  GIXSQL         BY REFERENCE "primesdb" & x"00"
+000203  GIXSQL         BY VALUE 0
+000204  GIXSQL     END-CALL.
+000205             display "disconnect from database" upon scherm.
+000206             display SQLCODE upon scherm.
+000207
+000208  GIXSQL*
+000209  GIXSQL*   ESQL CURSOR DECLARATIONS (START)
+000210  GIXSQL     GO TO GIX-SKIP-CRSR-INIT.
+000211  GIXSQL GIX-SKIP-CRSR-INIT.
+000212  GIXSQL*
+000213  GIXSQL*   ESQL CURSOR DECLARATIONS (END)
+
+
+0 warnings in compilation group
+0 errors in compilation group
